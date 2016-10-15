@@ -44,7 +44,7 @@
         <script type="text/javascript">
                     function login() {
                         $.ajax({
-                            url: 'login',
+                            url: 'webresources/professor/login',
                             method: 'post',
                             data: {
                                 email: $('#email').val(),
@@ -61,7 +61,7 @@
 
                     function eventos() {
                         $.ajax({
-                            url: 'eventos',
+                            url: 'webresources/professor/eventos',
                             method: 'get'
                         }).done(function (data, status, xhr) {
                             var lista = '';
@@ -80,7 +80,7 @@
 
                     function logout() {
                         $.ajax({
-                            url: 'logout',
+                            url: 'webresources/professor/logout',
                             method: 'post'
                         }).done(function (data) {
                             $('#professor').html('');
@@ -90,7 +90,7 @@
 
                     $(document).ready(function () {
                         $.ajax({
-                            url: 'professorLogado',
+                            url: 'webresources/professor/logado',
                             method: 'get'
                         }).done(function (data, status, xhr) {
                             if (xhr.getResponseHeader('Content-Type').startsWith('text/plain')) {
