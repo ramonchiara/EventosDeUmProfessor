@@ -1,5 +1,8 @@
 package br.pro.ramon.dcs.resources;
 
+import br.pro.ramon.dcs.resources.respostas.RespostaProfessor;
+import br.pro.ramon.dcs.resources.respostas.RespostaEventos;
+import br.pro.ramon.dcs.resources.respostas.RespostaErro;
 import br.pro.ramon.dcs.daos.DaoException;
 import br.pro.ramon.dcs.daos.DaoFactory;
 import br.pro.ramon.dcs.daos.EventoDao;
@@ -7,8 +10,6 @@ import br.pro.ramon.dcs.daos.ProfessorDao;
 import br.pro.ramon.dcs.entities.Evento;
 import br.pro.ramon.dcs.entities.Professor;
 import java.net.URI;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -35,26 +36,20 @@ public class ProfessorResource {
 
             if (professor == null) {
                 Status status = Status.NOT_FOUND;
-                return Response
-                        .status(status)
-                        .entity(String.format("{ \"status\": \"%d\", \"erro\": \"Usuário não encontrado.\" }", status.getStatusCode()))
-                        .build();
+                RespostaErro resposta = new RespostaErro(status, "Usuário não encontrado.");
+                return Response.status(status).entity(resposta).build();
             } else {
                 HttpSession session = request.getSession();
                 session.setAttribute("professor", professor);
 
                 Status status = Status.OK;
-                return Response
-                        .status(status)
-                        .entity(String.format("{ \"status\": \"%d\", \"nome\": \"%s\" }", status.getStatusCode(), professor.getNome()))
-                        .build();
+                RespostaProfessor resposta = new RespostaProfessor(status, professor);
+                return Response.status(status).entity(resposta).build();
             }
         } catch (DaoException ex) {
             Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response
-                    .status(status)
-                    .entity(String.format("{ \"status\": \"%d\", \"erro\": \"%s\" }", status.getStatusCode(), ex.getMessage()))
-                    .build();
+            RespostaErro resposta = new RespostaErro(status, ex.getMessage());
+            return Response.status(status).entity(resposta).build();
         }
     }
 
@@ -66,7 +61,7 @@ public class ProfessorResource {
         Professor professor = (Professor) session.getAttribute("professor");
 
         if (professor == null) {
-            return Response.seeOther(URI.create("index.html")).build();
+            return Response.seeOther(URI.create("../index.html")).build();
         } else {
             return Response.ok(professor.getNome()).build();
         }
@@ -82,43 +77,20 @@ public class ProfessorResource {
 
             if (professor == null) {
                 Status status = Status.UNAUTHORIZED;
-                return Response
-                        .status(status)
-                        .entity(String.format("{ \"status\": \"%d\", \"erro\": \"Você precisa estar logado para ver os eventos.\" }", status.getStatusCode()))
-                        .build();
+                RespostaErro resposta = new RespostaErro(status, "Você precisa estar logado para ver os eventos.");
+                return Response.status(status).entity(resposta).build();
             } else {
                 EventoDao eventoDao = DaoFactory.getEventoDao();
                 List<Evento> eventos = eventoDao.findAllByProfessor(professor);
 
-                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-                StringBuilder json = new StringBuilder();
-                json.append("[ ");
-                for (Evento evento : eventos) {
-                    json.append("{ ");
-                    json.append(String.format("\"data\": \"%s\"", df.format(evento.getData())));
-                    json.append(", ");
-                    json.append(String.format("\"descricao\": \"%s\"", evento.getDescricao()));
-                    json.append(", ");
-                    json.append(String.format("\"tipo\": \"%s\"", evento.getTipoEvento()));
-                    json.append(" }");
-                    json.append(", ");
-                }
-                json.deleteCharAt(json.length() - 1);
-                json.deleteCharAt(json.length() - 1);
-                json.append(" ]");
-
                 Status status = Status.OK;
-                return Response
-                        .status(status)
-                        .entity(String.format("{ \"status\": \"%d\", \"eventos\": %s }", status.getStatusCode(), json.toString()))
-                        .build();
+                RespostaEventos resposta = new RespostaEventos(status, eventos);
+                return Response.status(status).entity(resposta).build();
             }
         } catch (DaoException ex) {
             Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response
-                    .status(status)
-                    .entity(String.format("{ \"status\": \"%d\", \"erro\": \"%s\" }", status.getStatusCode(), ex.getMessage()))
-                    .build();
+            RespostaErro resposta = new RespostaErro(status, ex.getMessage());
+            return Response.status(status).entity(resposta).build();
         }
     }
 
